@@ -21,8 +21,6 @@
 
 package MooX::TaggedAttributes;
 
-use 5.10.0;
-
 use strict;
 use warnings;
 
@@ -139,7 +137,7 @@ sub _install_tag_handler {
 
 		    ## no critic (ProhibitAccessOfPrivateData)
                     for my $tag ( grep { exists $attr{$_} } @tags ) {
-                        $tags->{$tag} //= {};
+                        $tags->{$tag} = {} unless defined $tags->{$tag};
                         $tags->{$tag}{$_} = $attr{$tag} for @attrs;
                     }
 
