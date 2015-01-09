@@ -180,13 +180,10 @@ around _build__tags => sub {
 
 use namespace::clean -except => qw( import );
 
-
-has _tags => (
-    is       => 'lazy',
-    init_arg => undef,
-    builder  => sub { {} },
-);
-
+# because tag roles may be dynamically applied to objects, the entire
+# chain must be followed.  TODO: cache it.
+sub _build__tags {};
+sub _tags { $_[0]->_build__tags };
 
 
 1;
