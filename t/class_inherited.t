@@ -72,7 +72,7 @@ use Test::Deep;
     use Moo;
 
     extends 'C2';
-    T1->import( '-norole' );
+    T1->import;
 
     has c3_1 => (
         is      => 'rw',

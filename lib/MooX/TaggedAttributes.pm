@@ -83,15 +83,7 @@ sub _install_role_import {
         my $class = shift;
         my $target = caller;
 
-        my %want = map { $_ => 1 } @_;
-
-	my $want_role = ! $want{-norole};
-
-        $want_role ||= ( exists $Moo::Role::INFO{$target}
-              && !Moo::Role::does_role( $target, __PACKAGE__ ) );
-
-        Moo::Role->apply_roles_to_package( $target, $class )
-          if $want_role;
+        Moo::Role->apply_roles_to_package( $target, $class );
 
         _install_tags( $target, $TAGSTORE{$class} );
       };
@@ -158,6 +150,34 @@ sub _install_tag_handler {
 
 }
 
+use Sub::Name 'subname';
+
+my $can = sub { ( shift )->next::can };
+
+# need this to handle composition on top of inheritance
+# see http://www.nntp.perl.org/group/perl.moose/2015/01/msg287{6,7,8}.html
+around _build__tags => sub {
+
+    # at this point, execution is at the bottom of the stack
+    # of wrapped calls for the immediate composing class.
+
+    # use the calling package as the starting point for the search up
+    # the inheritance chain.  as this routine gets called from
+    # different points, that'll change.
+
+    # only run the original method when we've reached the very
+    # end of the inheritance chain.  otherwise it will get run
+    # for each class (as we bottom out here) which is incorrect.
+
+    my $orig    = shift;
+    my $package = caller;
+
+    my $next = ( subname "${package}::_build__tags" => $can )->( $_[0] );
+
+    return $next ? $next->( @_ ) : &$orig;
+};
+
+
 use namespace::clean -except => qw( import );
 
 
@@ -219,15 +239,22 @@ which tags, and what the values are.
 
 =head2 Tagging Attributes
 
-=head3 Creating a Tag Role
-
 To define a set of tags, create a special I<tag role>:
 
-    package T;
+    package T1;
     use Moo::Role;
-    use MooX::TaggedAttributes -tags => [ qw( t1 t2 ) ];
+    use MooX::TaggedAttributes -tags => [ 't1' ];
 
-    has attr => ( is => 'ro', t1 => 'boo' );
+    has a1 => ( is => 'ro', t1 => 'foo' );
+
+If there's only one tag, it can be passed directly without being
+wrapped in an array:
+
+    package T2;
+    use Moo::Role;
+    use MooX::TaggedAttributes -tags => 't2';
+
+    has a2 => ( is => 'ro', t2 => 'bar' );
 
 A tag role is a standard B<Moo::Role> with added machinery to track
 attribute tags.  As shown, attributes may be tagged in the tag role
@@ -235,73 +262,44 @@ as well as in modules which consume it.
 
 Tag roles may be consumed just as ordinary roles, but in order for
 role consumers to have the ability to assign tags to attributes, they
-need to be consumed with the Perl B<use> statement; consuming with the
-B<with> statement will propagate attributes with existing tags, but
-won't provide the ability to tag new attributes.
+need to be consumed with the Perl B<use> statement, not with the B<with> statement.
 
-=head3 Using a Tag Role in a Role
+Consuming with the B<with> statement I<will> propagate attributes with
+existing tags, but won't provide the ability to tag new attributes.
 
-To be able to tag attributes roles must consume a tagged role with the
-Perl B<use> statement:
+This is correct:
 
     package R2;
     use Moo::Role;
-    use T;
+    use T1;
 
-    # the t1 tag is tracked
     has r2 => ( is => 'ro', t1 => 'foo' );
 
     package R3;
     use Moo::Role;
     use R3;
 
-    # the t1 tag is tracked
     has r3 => ( is => 'ro', t1 => 'foo' );
 
-The consuming role becomes a tag role, and can be used in the same
-manner as the original tag role.
+The same goes for classes:
 
-=head3 Combining Tag Roles
+    package C2;
+    use Moo;
+    use T1;
 
-Combining tag roles is a simple as B<use>'ing them in the new role:
+    has c2 => ( is => 'ro', t1 => 'foo' );
+
+Combining tag roles is as simple as B<use>'ing them in the new role:
 
     package T12;
     use T1;
     use T2;
 
-=head3 Using a Tag Role in a Class
-
-Just as with roles, to provide the ability to tag attributes to a
-class consuming a tagged role, use the B<use> statement:
-
     package C2;
     use Moo;
-    use T;
+    use T12;
 
-    # the t1 tag is tracked
-    has c2 => ( is => 'ro', t1 => 'foo' );
-
-=head3 Class inheritance and Tag Roles
-
-To be able to tag attributes when inheriting from a class with tagged attributes,
-the tag class must be re-B<use>'ed with the C<-norule> flag:
-
-    package C3;
-    use Moo;
-    use T;
-
-    has c3 => ( is => 'ro', t1 => 'foo' );
-
-    package C4;
-    use Moo;
-    extends 'C3';
-    use T -norole;
-
-    has c4 => ( is = 'ro', t1 => 'foo' );
-
-If you forget the C<-norole> flag, none of the attribute tags will be
-accessible.
-
+    has c2 => ( is => 'ro', t1 => 'foo', t2 => 'bar' );
 
 =head2 Accessing tags
 

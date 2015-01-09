@@ -119,7 +119,7 @@ use Test::Deep;
     use Moo;
 
     extends 'C2';
-    T3->import( '-norole' );
+    T3->import;
 
     has c3_1 => (
         is      => 'rw',

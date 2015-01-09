@@ -1,5 +1,6 @@
 requires 'Moo';
 requires 'Class::Method::Modifiers';
+requires 'Sub::Name';
 requires 'namespace::clean';
 
 on test => sub {
