@@ -31,11 +31,8 @@ our $VERSION = '0.00';
 use Carp;
 
 use Moo::Role;
-use Module::Runtime qw(use_package_optimistically module_notional_filename);
 
 use Class::Method::Modifiers qw[ install_modifier ];
-
-use constant TAGSTORE => '@_MooX_Attributes_Tags';
 
 our %TAGSTORE;
 
@@ -75,7 +72,7 @@ sub import {
 
 sub _install_role_import {
 
-    my ( $target, $import ) = @_;
+    my $target = shift;
 
     ## no critic (ProhibitNoStrict)
     no strict 'refs';
@@ -122,7 +119,7 @@ sub _install_tags {
 
 sub _install_tag_handler {
 
-    my $target = $_[0];
+    my $target = shift;
 
     install_modifier(
         $target,
