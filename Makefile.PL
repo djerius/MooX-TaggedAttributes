@@ -13,8 +13,9 @@ resources (
    bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=MooX-TaggedAttributes',
 );
 
-
 author_tests( 'xt' );
+
+cpanfile
 
 tests_recursive;
 
