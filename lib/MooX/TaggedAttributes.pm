@@ -178,10 +178,19 @@ around _build__tags => sub {
 
 use namespace::clean -except => qw( import );
 
-# because tag roles may be dynamically applied to objects, the entire
-# chain must be followed.  TODO: cache it.
-sub _build__tags {};
-sub _tags { $_[0]->_build__tags };
+# _tags can't be lazy; we must resolve the tags and attributes at
+# object creation time in case a class is modified after this object
+# is created.
+
+# However, we also need to identify when a role has
+# been added to this object which adds tagged attributes.
+# TODO: make this work.
+
+has _tags => ( is => 'ro',
+	       init_arg => undef,
+	       builder => sub {}
+	     );
+
 
 
 1;
@@ -325,8 +334,12 @@ looks like
 
 =head1 BUGS AND LIMITATIONS
 
+=head2 Changes to an object after instantiation are not tracked.
 
-No bugs have been reported.
+If a role with tagged attributes is applied to an object, the
+tags for those attributes are not visible.
+
+
 
 Please report any bugs or feature requests to
 C<bug-moox-taggedattributes@rt.cpan.org>, or through the web interface at

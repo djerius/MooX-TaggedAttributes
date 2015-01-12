@@ -56,7 +56,7 @@ cmp_deeply(
     ),
 );
 
-# now apply a role to the object and make sure things work.
+# now apply a role to the class and make sure things work.
 
 {
     package R1;
@@ -73,7 +73,7 @@ cmp_deeply(
 
 }
 
-Moo::Role->apply_roles_to_object( $q, 'R1' );
+Moo::Role->apply_roles_to_package( 'C1', 'R1' );
 
 cmp_deeply(
     $q,
@@ -81,20 +81,18 @@ cmp_deeply(
         t1_1  => 't1_1.v',
         c1_1  => 'c1_1.v',
         c1_2  => 'c1_2.v',
-        r1_1  => 'r1_1.v',
         _tags => {
             tag1 => {
                 c1_1 => 'c1_1.t1',
-                r1_1 => 'r1_1.t1',
             },
             tag2 => {
                 c1_1 => 'c1_1.t2',
                 c1_2 => 'c1_2.t2',
-                r1_1 => 'r1_1.t2',
             },
         },
     ),
 );
+
 
 
 done_testing;
