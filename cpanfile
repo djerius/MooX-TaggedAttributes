@@ -2,6 +2,7 @@ requires 'Moo';
 requires 'Class::Method::Modifiers';
 requires 'Sub::Name';
 requires 'namespace::clean';
+requires 'Scalar::Util';
 
 on test => sub {
 
