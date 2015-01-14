@@ -35,9 +35,7 @@ use Class::Method::Modifiers qw[ install_modifier ];
 
 our %TAGSTORE;
 
-my %ARGS = (
-    -tags  => [],
-);
+my %ARGS = ( -tags => [] );
 
 sub import {
 
@@ -76,16 +74,15 @@ sub _install_role_import {
     ## no critic (ProhibitNoStrict)
     no strict 'refs';
     no warnings 'redefine';
-    *{"${target}::import"} =
-      sub {
+    *{"${target}::import"} = sub {
 
-        my $class = shift;
+        my $class  = shift;
         my $target = caller;
 
         Moo::Role->apply_roles_to_package( $target, $class );
 
         _install_tags( $target, $TAGSTORE{$class} );
-      };
+    };
 
 }
 
@@ -127,22 +124,25 @@ sub _install_tag_handler {
             #  1) use the target package's around() function, and
             #  2) call it in that package's context.
 
-	    ## no critic (ProhibitStringyEval)
+            ## no critic (ProhibitStringyEval)
             my $around = eval( "package $target; sub { goto &around }" );
 
             $around->(
                 "_build__tag_cache" => sub {
                     my $orig = shift;
 
-                    my $tags = &$orig;
+                    my $cache = &$orig;
 
 		    ## no critic (ProhibitAccessOfPrivateData)
                     for my $tag ( grep { exists $attr{$_} } @tags ) {
-                        $tags->{$tag} = {} unless defined $tags->{$tag};
-                        $tags->{$tag}{$_} = $attr{$tag} for @attrs;
+
+                        $cache->{$tag} ||= {};
+                        $cache->{$tag}{$_} = $attr{$tag} for @attrs;
+
                     }
 
-                    return $tags;
+                    return $cache;
+
                 } );
 
         } );
@@ -173,7 +173,24 @@ around _build__tag_cache => sub {
 
     my $next = ( subname "${package}::_build__tag_cache" => $can )->( $_[0] );
 
-    return $next ? $next->( @_ ) : &$orig;
+    my $cache1 = &$orig;
+
+    return $cache1 unless $next;
+
+    my $cache2 = &$next;
+
+    for my $tag ( keys %$cache2 ) {
+
+	## no critic (ProhibitAccessOfPrivateData)
+        my $attrs = $cache2->{$tag};
+
+        $cache1->{$tag} ||= {};
+        $cache1->{$tag}{$_} = $attrs->{$_} for keys %$attrs;
+
+    }
+
+    return $cache1;
+
 };
 
 
@@ -187,10 +204,10 @@ use namespace::clean -except => qw( import );
 # been added to this object which adds tagged attributes.
 # TODO: make this work.
 
-has _tag_cache => ( is => 'ro',
-	       init_arg => undef,
-	       builder => sub {}
-	     );
+has _tag_cache => (
+    is       => 'ro',
+    init_arg => undef,
+    builder  => sub { {} } );
 
 sub _tags { blessed( $_[0] ) ? $_[0]->_tag_cache : $_[0]->_build__tag_cache }
 
