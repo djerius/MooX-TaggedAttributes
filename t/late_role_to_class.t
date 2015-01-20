@@ -38,25 +38,9 @@ use Test::Deep;
 
 my $q = C1->new;
 
-cmp_deeply(
-    $q,
-    methods(
-        t1_1  => 't1_1.v',
-        c1_1  => 'c1_1.v',
-        c1_2  => 'c1_2.v',
-        _tags => {
-            tag1 => {
-                c1_1 => 'c1_1.t1',
-            },
-            tag2 => {
-                c1_1 => 'c1_1.t2',
-                c1_2 => 'c1_2.t2',
-            },
-        },
-    ),
-);
-
 # now apply a role to the class and make sure things work.
+# don't call _tags prior to applying the role to avoid priming
+# things
 
 {
     package R1;
