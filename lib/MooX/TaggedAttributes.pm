@@ -185,7 +185,7 @@ use namespace::clean -except => qw( import );
 sub _tag_list { [] }
 
 has _tag_cache => (
-    is       => 'lazy',
+    is       => 'ro',
     init_arg => undef,
     builder  => sub {
         my $self = shift;
