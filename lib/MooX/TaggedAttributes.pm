@@ -114,7 +114,7 @@ sub _install_tag_handler {
         after => has => sub {
             my ( $attrs, %attr ) = @_;
 
-            my @attrs = ref $attrs ? @$attrs : $attrs;
+            $attrs = ref $attrs ? $attrs : [$attrs];
 
             my $target = caller;
 
@@ -128,20 +128,15 @@ sub _install_tag_handler {
             my $around = eval( "package $target; sub { goto &around }" );
 
             $around->(
-                "_build__tag_cache" => sub {
+                "_tag_list" => sub {
                     my $orig = shift;
 
-                    my $cache = &$orig;
-
-		    ## no critic (ProhibitAccessOfPrivateData)
-                    for my $tag ( grep { exists $attr{$_} } @tags ) {
-
-                        $cache->{$tag} ||= {};
-                        $cache->{$tag}{$_} = $attr{$tag} for @attrs;
-
-                    }
-
-                    return $cache;
+                    ## no critic (ProhibitAccessOfPrivateData)
+                    return [
+                        @{&$orig},
+                        map { [ $_, $attrs, $attr{$_} ] }
+                          grep { exists $attr{$_} } @tags,
+                    ];
 
                 } );
 
@@ -155,7 +150,7 @@ my $can = sub { ( shift )->next::can };
 
 # need this to handle composition on top of inheritance
 # see http://www.nntp.perl.org/group/perl.moose/2015/01/msg287{6,7,8}.html
-around _build__tag_cache => sub {
+around _tag_list => sub {
 
     # at this point, execution is at the bottom of the stack
     # of wrapped calls for the immediate composing class.
@@ -171,26 +166,9 @@ around _build__tag_cache => sub {
     my $orig    = shift;
     my $package = caller;
 
-    my $next = ( subname "${package}::_build__tag_cache" => $can )->( $_[0] );
+    my $next = ( subname "${package}::_tag_list" => $can )->( $_[0] );
 
-    my $cache1 = &$orig;
-
-    return $cache1 unless $next;
-
-    my $cache2 = &$next;
-
-    for my $tag ( keys %$cache2 ) {
-
-	## no critic (ProhibitAccessOfPrivateData)
-        my $attrs = $cache2->{$tag};
-
-        $cache1->{$tag} ||= {};
-        $cache1->{$tag}{$_} = $attrs->{$_} for keys %$attrs;
-
-    }
-
-    return $cache1;
-
+    return [ @{&$orig}, $next ? @{&$next} : () ];
 };
 
 
@@ -204,10 +182,25 @@ use namespace::clean -except => qw( import );
 # been added to this object which adds tagged attributes.
 # TODO: make this work.
 
+sub _tag_list { [] }
+
 has _tag_cache => (
-    is       => 'ro',
+    is       => 'lazy',
     init_arg => undef,
-    builder  => sub { {} } );
+    builder  => sub {
+        my $self = shift;
+        my %cache;
+
+        for my $tuple ( @{ $self->_tag_list } ) {
+            # my ( $tag, $attrs, $value ) = @$tuple;
+            my $cache = ( $cache{ $tuple->[0] } ||= {} );
+            $cache->{$_} = $tuple->[2] for @{ $tuple->[1] };
+        }
+
+        return \%cache;
+      }
+
+);
 
 sub _tags { blessed( $_[0] ) ? $_[0]->_tag_cache : $_[0]->_build__tag_cache }
 
