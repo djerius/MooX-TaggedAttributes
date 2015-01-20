@@ -57,4 +57,20 @@ cmp_deeply(
 );
 
 
+my $q = C1->_tags;
+
+cmp_deeply(
+    $q,
+        {
+            tag1 => {
+                c1_1 => 'c1_1.t1',
+            },
+            tag2 => {
+                c1_1 => 'c1_1.t2',
+                c1_2 => 'c1_2.t2',
+            },
+        },
+);
+
+
 done_testing;
