@@ -148,24 +148,23 @@ use Sub::Name 'subname';
 
 my $can = sub { ( shift )->next::can };
 
-# need this to handle composition on top of inheritance
-# see http://www.nntp.perl.org/group/perl.moose/2015/01/msg287{6,7,8}.html
+# this modifier is run once for each composition of a tag role into
+# the class.  role composition is orthogonal to class inheritance, so we
+# need to carefully handle both
+
+# see http://www.nntp.perl.org/group/perl.moose/2015/01/msg287{6,7,8}.html,
+# but note that djerius' published solution was incomplete.
 around _tag_list => sub {
 
-    # at this point, execution is at the bottom of the stack
-    # of wrapped calls for the immediate composing class.
 
-    # use the calling package as the starting point for the search up
-    # the inheritance chain.  as this routine gets called from
-    # different points, that'll change.
+    # 1. call &$orig to handle tag role compositions into the current class
 
-    # only run the original method when we've reached the very
-    # end of the inheritance chain.  otherwise it will get run
-    # for each class (as we bottom out here) which is incorrect.
+    # 2. call up the inheritance stack to handle parent class tag role compositions.
 
     my $orig    = shift;
     my $package = caller;
 
+    # create the proper environment context for next::can
     my $next = ( subname "${package}::_tag_list" => $can )->( $_[0] );
 
     return [ @{&$orig}, $next ? @{&$next} : () ];
@@ -175,12 +174,13 @@ around _tag_list => sub {
 use namespace::clean -except => qw( import );
 
 # _tags can't be lazy; we must resolve the tags and attributes at
-# object creation time in case a class is modified after this object
-# is created.
+# object creation time in case a role is modified after this object
+# is created, as we scan both clsses and roles to gather the tags.
+# classes should be immutable after the first instantiation
+# of an object (but see RT#101631), but roles aren't.
 
-# However, we also need to identify when a role has
-# been added to this object which adds tagged attributes.
-# TODO: make this work.
+# We also need to identify when a role has been added to an *object*
+# which adds tagged attributes.  TODO: make this work.
 
 sub _tag_list { [] }
 
