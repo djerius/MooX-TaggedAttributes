@@ -34,6 +34,7 @@ use Scalar::Util qw[ blessed ];
 use Class::Method::Modifiers qw[ install_modifier ];
 
 our %TAGSTORE;
+our %TAGCACHE;
 
 my %ARGS = ( -tags => [] );
 
@@ -184,25 +185,42 @@ use namespace::clean -except => qw( import );
 
 sub _tag_list { [] }
 
+
+# Build the tag cache.  Only update it if we're an object.  if the
+# class hasn't yet been instantiated, it's still mutable, and we'd be
+# caching prematurely.
+
+sub _build_cache {
+
+    my $class = shift;
+
+    # returned cached tags if available.  Note that as of Moo v.1.006001
+    # instantiated classes may still have attributes composed into them
+    # (i.e., they're not fully immutable, see RT#101631), but that
+    # is acknowledged as a bug, not a feature, so we don't support that.
+    return $TAGCACHE{$class} if $TAGCACHE{$class};
+
+    my %cache;
+
+    for my $tuple ( @{ $class->_tag_list } ) {
+        # my ( $tag, $attrs, $value ) = @$tuple;
+        my $cache = ( $cache{ $tuple->[0] } ||= {} );
+        $cache->{$_} = $tuple->[2] for @{ $tuple->[1] };
+    }
+
+    return \%cache;
+}
+
 has _tag_cache => (
     is       => 'ro',
     init_arg => undef,
-    builder  => sub {
-        my $self = shift;
-        my %cache;
-
-        for my $tuple ( @{ $self->_tag_list } ) {
-            # my ( $tag, $attrs, $value ) = @$tuple;
-            my $cache = ( $cache{ $tuple->[0] } ||= {} );
-            $cache->{$_} = $tuple->[2] for @{ $tuple->[1] };
-        }
-
-        return \%cache;
-      }
-
+    default  => sub {
+	my $class = blessed( $_[0] );
+	return $TAGCACHE{$class} ||= $class->_build_cache;
+    }
 );
 
-sub _tags { blessed( $_[0] ) ? $_[0]->_tag_cache : $_[0]->_build__tag_cache }
+sub _tags { blessed( $_[0] ) ? $_[0]->_tag_cache : $_[0]->_build_cache }
 
 1;
 
