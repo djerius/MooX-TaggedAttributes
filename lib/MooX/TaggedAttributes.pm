@@ -177,8 +177,8 @@ use namespace::clean -except => qw( import );
 # _tags can't be lazy; we must resolve the tags and attributes at
 # object creation time in case a role is modified after this object
 # is created, as we scan both clsses and roles to gather the tags.
-# classes should be immutable after the first instantiation
-# of an object (but see RT#101631), but roles aren't.
+# classes are immutable after the first instantiation
+# of an object, but roles aren't.
 
 # We also need to identify when a role has been added to an *object*
 # which adds tagged attributes.  TODO: make this work.
@@ -194,10 +194,7 @@ sub _build_cache {
 
     my $class = shift;
 
-    # returned cached tags if available.  Note that as of Moo v.1.006001
-    # instantiated classes may still have attributes composed into them
-    # (i.e., they're not fully immutable, see RT#101631), but that
-    # is acknowledged as a bug, not a feature, so we don't support that.
+    # returned cached tags if available.
     return $TAGCACHE{$class} if $TAGCACHE{$class};
 
     my %cache;
