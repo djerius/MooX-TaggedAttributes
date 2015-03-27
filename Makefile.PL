@@ -15,7 +15,7 @@ resources (
 
 author_tests( 'xt' );
 
-cpanfile
+cpanfile;
 
 tests_recursive;
 
