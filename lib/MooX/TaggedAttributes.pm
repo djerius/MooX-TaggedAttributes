@@ -24,7 +24,7 @@ package MooX::TaggedAttributes;
 use strict;
 use warnings;
 
-our $VERSION = '0.00_03';
+our $VERSION = '0.01';
 
 use Carp;
 
