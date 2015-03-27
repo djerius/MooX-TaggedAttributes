@@ -157,10 +157,11 @@ my $can = sub { ( shift )->next::can };
 # but note that djerius' published solution was incomplete.
 around _tag_list => sub {
 
+    # 1. call &$orig to handle tag role compositions into the current
+    #    class
 
-    # 1. call &$orig to handle tag role compositions into the current class
-
-    # 2. call up the inheritance stack to handle parent class tag role compositions.
+    # 2. call up the inheritance stack to handle parent class tag role
+    #    compositions.
 
     my $orig    = shift;
     my $package = caller;
@@ -387,10 +388,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see L<http://www.gnu.org/licenses/>.
 
 =head1 AUTHOR
 
 Diab Jerius  E<lt>djerius@cpan.orgE<gt>
-
-
