@@ -1,14 +1,18 @@
-requires 'Moo';
-requires 'Class::Method::Modifiers';
-requires 'Sub::Name';
-requires 'namespace::clean';
-requires 'Scalar::Util';
+on runtime => sub {
+
+    requires 'Moo' => '1.001';    # non-sub defaults
+    requires 'Class::Method::Modifiers';
+    requires 'Sub::Name';
+    requires 'namespace::clean';
+    requires 'Scalar::Util';
+
+};
 
 on test => sub {
 
-   requires 'Test::More';
-   requires 'Test::Deep';
-   requires 'Test::Lib';
+    requires 'Test::More';
+    requires 'Test::Deep';
+    requires 'Test::Lib';
 
 };
 
