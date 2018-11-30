@@ -1,5 +1,6 @@
 requires "Carp" => "0";
 requires "Class::Method::Modifiers" => "2.12";
+requires "MRO::Compat" => "0";
 requires "Moo" => "2.003004";
 requires "Moo::Role" => "0";
 requires "Scalar::Util" => "0";
@@ -27,7 +28,6 @@ on 'test' => sub {
 };
 
 on 'configure' => sub {
-  requires "ExtUtils::MakeMaker" => "0";
   requires "Module::Build::Tiny" => "0.034";
 };
 
