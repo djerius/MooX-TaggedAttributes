@@ -8,6 +8,7 @@ use warnings;
 our $VERSION = '0.03';
 
 use Carp;
+use MRO::Compat;
 
 use Moo::Role;
 
