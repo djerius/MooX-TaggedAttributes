@@ -2,6 +2,14 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.03      2018-11-30 09:05:49-05:00 America/New_York (TRIAL RELEASE)
+
+  [ BUILD ]
+
+    * extend compatibiilty to 5.8.X
+    * remove vestiges of MakeMaker support in favor of Module::Build::Tiny
+
+
 0.02      2018-11-29 17:33:09-05:00 America/New_York (TRIAL RELEASE)
 
   [ BUILD ]
