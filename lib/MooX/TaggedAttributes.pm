@@ -60,6 +60,9 @@ sub _install_role_import {
     *{"${target}::import"} = sub {
 
         my $class  = shift;
+
+        return unless Moo::Role->is_role( $class );
+
         my $target = caller;
 
         Moo::Role->apply_roles_to_package( $target, $class );
