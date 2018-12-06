@@ -10,8 +10,6 @@ our $VERSION = '0.05';
 use Carp;
 use MRO::Compat;
 
-use Moo::Role;
-
 use Scalar::Util qw[ blessed ];
 use Class::Method::Modifiers qw[ install_modifier ];
 
@@ -50,13 +48,16 @@ sub import {
     _install_role_import( $target );
 }
 
+# Moo::Role won't compose anything before it was used into a consuming
+# package. Don't want import to be consumed.
+use Moo::Role;
+
 sub _install_role_import {
 
     my $target = shift;
 
     ## no critic (ProhibitNoStrict)
     no strict 'refs';
-    no warnings 'redefine';
     *{"${target}::import"} = sub {
 
         my $class  = shift;
