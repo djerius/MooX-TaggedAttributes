@@ -61,7 +61,6 @@ our $_role_import = sub {
 
 
 sub _install_role_import {
-
     my $target = shift;
 
     ## no critic (ProhibitStringyEval)
@@ -73,21 +72,16 @@ sub _install_role_import {
 
 
 sub _install_tags {
-
     my ( $target, $tags ) = @_;
 
     if ( $TAGSTORE{$target} ) {
-
         push @{ $TAGSTORE{$target} }, @$tags;
-
     }
 
     else {
-
         $TAGSTORE{$target} = [@$tags];
         _install_tag_handler( $target );
     }
-
 }
 
 sub _install_tag_handler {
@@ -145,10 +139,9 @@ my $can = sub { ( shift )->next::can };
 # but note that djerius' published solution was incomplete.
 around _tag_list => sub {
 
-
     # 1. call &$orig to handle tag role compositions into the current class
 
-    # 2. call up the inheritance stack to handle parent class tag role compositions.
+# 2. call up the inheritance stack to handle parent class tag role compositions.
 
     my $orig    = shift;
     my $package = caller;
@@ -205,8 +198,7 @@ has _tag_cache => (
     default  => sub {
         my $class = blessed( $_[0] );
         return $TAGCACHE{$class} ||= $class->_build_cache;
-    }
-);
+    } );
 
 sub _tags { blessed( $_[0] ) ? $_[0]->_tag_cache : $_[0]->_build_cache }
 
