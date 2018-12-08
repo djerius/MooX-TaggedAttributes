@@ -48,29 +48,27 @@ sub import {
     _install_role_import( $target );
 }
 
-# Moo::Role won't compose anything before it was used into a consuming
-# package. Don't want import to be consumed.
-use Moo::Role;
+# this needs to be accessible by tag role import() methods, but don't want it
+# to pollute the namespace
+our $_role_import = sub {
+    my $class = shift;
+    return unless Moo::Role->is_role( $class );
+
+    my $target = caller;
+    Moo::Role->apply_roles_to_package( $target, $class );
+    _install_tags( $target, $TAGSTORE{$class} );
+};
+
 
 sub _install_role_import {
 
     my $target = shift;
 
-    ## no critic (ProhibitNoStrict)
-    no strict 'refs';
-    *{"${target}::import"} = sub {
+    ## no critic (ProhibitStringyEval)
 
-        my $class  = shift;
-
-        return unless Moo::Role->is_role( $class );
-
-        my $target = caller;
-
-        Moo::Role->apply_roles_to_package( $target, $class );
-
-        _install_tags( $target, $TAGSTORE{$class} );
-    };
-
+    croak( "error installing import routine into $target\n" )
+      unless eval
+      "package $target; sub import { goto \$MooX::TaggedAttributes::_role_import }; 1;";
 }
 
 
@@ -93,8 +91,18 @@ sub _install_tags {
 }
 
 sub _install_tag_handler {
-
     my $target = shift;
+
+    # we need to
+    #  1) use the target package's around() function, and
+    #  2) call it in that package's context.
+
+    # create a closure which knows about the target's around
+    # so that if namespace::clean is called on the target class
+    # we don't lose access to it.
+
+    ## no critic (ProhibitStringyEval)
+    my $around = eval( "package $target; sub { goto &around }" );
 
     install_modifier(
         $target,
@@ -103,16 +111,7 @@ sub _install_tag_handler {
 
             $attrs = ref $attrs ? $attrs : [$attrs];
 
-            my $target = caller;
-
             my @tags = @{ $TAGSTORE{$target} };
-
-            # we need to
-            #  1) use the target package's around() function, and
-            #  2) call it in that package's context.
-
-            ## no critic (ProhibitStringyEval)
-            my $around = eval( "package $target; sub { goto &around }" );
 
             $around->(
                 "_tag_list" => sub {
@@ -128,8 +127,11 @@ sub _install_tag_handler {
                 } );
 
         } );
-
 }
+
+# Moo::Role won't compose anything before it was used into a consuming
+# package. Don't want import to be consumed.
+use Moo::Role;
 
 use Sub::Name 'subname';
 
