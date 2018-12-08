@@ -218,36 +218,15 @@ __END__
 
 =head1 SYNOPSIS
 
-    # Create a Role used to apply the attributes
-    package Tags;
-    use Moo::Role;
-    use MooX::TaggedAttributes -tags => [ qw( t1 t2 ) ];
+# EXAMPLE: ./examples/synopsis/T1.pm
 
-    # Apply the role directly to a class
-    package C1;
-    use Tags;
+# EXAMPLE: ./examples/synopsis/C1.pm
 
-    has c1 => ( is => 'ro', t1 => 1 );
+# EXAMPLE: ./examples/synopsis/R1.pm
 
-    my $obj = C1->new;
+# EXAMPLE: ./examples/synopsis/C2.pm
 
-    # get the value of the tag t1, applied to attribute a1
-    $obj->_tags->{t1}{a1};
-
-    # Apply the tags to a role
-    package R1;
-    use Tag1;
-
-    has r1 => ( is => 'ro', t2 => 2 );
-
-    # Use that role in a class
-    package C2;
-    use R1;
-
-    has c2 => ( is => 'ro', t2 => sub { }  );
-
-    # get the value of the tag t2, applied to attribute c2
-    C2->new->_tags->{t2}{c2};
+# EXAMPLE: ./examples/synopsis/script.pl
 
 =head1 DESCRIPTION
 
@@ -259,20 +238,12 @@ which tags, and what the values are.
 
 To define a set of tags, create a special I<tag role>:
 
-    package T1;
-    use Moo::Role;
-    use MooX::TaggedAttributes -tags => [ 't1' ];
-
-    has a1 => ( is => 'ro', t1 => 'foo' );
+# EXAMPLE: ./examples/description/T1.pm
 
 If there's only one tag, it can be passed directly without being
 wrapped in an array:
 
-    package T2;
-    use Moo::Role;
-    use MooX::TaggedAttributes -tags => 't2';
-
-    has a2 => ( is => 'ro', t2 => 'bar' );
+# EXAMPLE: ./examples/description/T2.pm
 
 A tag role is a standard B<Moo::Role> with added machinery to track
 attribute tags.  As shown, attributes may be tagged in the tag role
@@ -287,37 +258,19 @@ existing tags, but won't provide the ability to tag new attributes.
 
 This is correct:
 
-    package R2;
-    use Moo::Role;
-    use T1;
+# EXAMPLE: ./examples/description/R2.pm
 
-    has r2 => ( is => 'ro', t1 => 'foo' );
-
-    package R3;
-    use Moo::Role;
-    use R3;
-
-    has r3 => ( is => 'ro', t1 => 'foo' );
+# EXAMPLE: ./examples/description/R3.pm
 
 The same goes for classes:
 
-    package C2;
-    use Moo;
-    use T1;
-
-    has c2 => ( is => 'ro', t1 => 'foo' );
+# EXAMPLE: ./examples/description/C1.pm
 
 Combining tag roles is as simple as B<use>'ing them in the new role:
 
-    package T12;
-    use T1;
-    use T2;
+# EXAMPLE: ./examples/description/T12.pm
 
-    package C2;
-    use Moo;
-    use T12;
-
-    has c2 => ( is => 'ro', t1 => 'foo', t2 => 'bar' );
+# EXAMPLE: ./examples/description/C2.pm
 
 =head2 Accessing tags
 
@@ -325,27 +278,19 @@ Classes and objects are provided a B<_tags> method which returns a
 hash of hashes keyed off of the tags and attribute names.  For
 example, for the following code:
 
-    package T;
-    use Moo::Role;
-    use MooX::TaggedAttributes -tags => [ qw( t1 t2 ) ];
+# EXAMPLE: ./examples/accessing/T.pm
 
-    package C;
-    use Moo;
-    use T;
+# EXAMPLE: ./examples/accessing/C.pm
 
-    has a => ( is => 'ro', t1 => 2 );
-    has b => ( is => 'ro', t2 => 'foo' );
+The tag structure returned by  C<< C->_tags >>
 
-The tag structure returned by either of the following
+# COMMAND: perl -Iexamples/accessing -MC -MData::Dump -e 'dd( C->_tags)'
 
-    C->_tags
-    C->new->_tags
+and C<< C->new->_tags >>
 
-looks like
+# COMMAND: perl -Iexamples/accessing -MC -MData::Dump -E 'dd( C->new->_tags)'
 
-    { t1 => { a => 2 },
-      t2 => { b => 'foo' },
-    }
+are identical.
 
 =head1 BUGS AND LIMITATIONS
 
@@ -353,7 +298,3 @@ looks like
 
 If a role with tagged attributes is applied to an object, the
 tags for those attributes are not visible.
-
-
-
-
