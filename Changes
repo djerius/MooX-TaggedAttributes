@@ -2,6 +2,18 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.06      2018-12-08 12:52:50-05:00 America/New_York (TRIAL RELEASE)
+
+  [ ENHANCEMENT & API BREAKAGE ]
+
+    * clean up namespace pollution
+    * use of Moo::Role and Moo required.
+
+  [ BUILD ]
+
+    * check all code in the documentation
+
+
 0.05      2018-12-06 18:55:08-05:00 America/New_York
 
   [ BUG FIX ]
