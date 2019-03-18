@@ -2,10 +2,15 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.09      2019-03-18 10:04:27-04:00 America/New_York
+
+  [ BUG FIX ]
+
+    * specify mininum version of Perl required. ++manwar
+
 0.08      2019-03-15 15:12:24-04:00 America/New_York
 
   [ COMPATIBILITY FIX ]
-
 
     * Some MooX modules modify Moo's accessor maker, which can cause
      problems if multiple roles with the same attributes are applied
