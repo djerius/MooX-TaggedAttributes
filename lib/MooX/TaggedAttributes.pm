@@ -2,6 +2,8 @@ package MooX::TaggedAttributes;
 
 # ABSTRACT: Add a tag with an arbitrary value to a an attribute
 
+use 5.008009;
+
 use strict;
 use warnings;
 
