@@ -9,7 +9,7 @@ use warnings;
 
 use Hash::Util;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use overload '%{}' => \&tag_hash, fallback => 1;
 

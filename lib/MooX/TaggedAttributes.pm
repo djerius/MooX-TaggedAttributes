@@ -7,7 +7,7 @@ use 5.01001;
 use strict;
 use warnings;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use Carp;
 use MRO::Compat;
