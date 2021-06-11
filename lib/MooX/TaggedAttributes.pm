@@ -2,7 +2,7 @@ package MooX::TaggedAttributes;
 
 # ABSTRACT: Add a tag with an arbitrary value to a an attribute
 
-use 5.008009;
+use 5.01001;
 
 use strict;
 use warnings;
@@ -14,6 +14,8 @@ use MRO::Compat;
 
 use Scalar::Util qw[ blessed ];
 use Class::Method::Modifiers qw[ install_modifier ];
+
+use MooX::TaggedAttributes::Cache;
 
 our %TAGSTORE;
 our %TAGCACHE;
@@ -125,6 +127,7 @@ sub _install_tag_handler {
         } );
 }
 
+
 # Moo::Role won't compose anything before it was used into a consuming
 # package. Don't want import to be consumed.
 use Moo::Role;
@@ -142,8 +145,7 @@ my $can = sub { ( shift )->next::can };
 around _tag_list => sub {
 
     # 1. call &$orig to handle tag role compositions into the current class
-
-# 2. call up the inheritance stack to handle parent class tag role compositions.
+    # 2. call up the inheritance stack to handle parent class tag role compositions.
 
     my $orig    = shift;
     my $package = caller;
@@ -176,17 +178,7 @@ sub _class_tags {
     # return cached values if available.  They are stored in %TAGCACHE
     # on the first object method call to _tags(), at which point we've
     # decreed the class as being complete.
-    return $TAGCACHE{$class}
-      || do {
-        my %cache;
-        for my $tuple ( @{ $class->_tag_list } ) {
-
-            # my ( $tag, $attrs, $value ) = @$tuple;
-            my $cache = ( $cache{ $tuple->[0] } ||= {} );
-            $cache->{$_} = $tuple->[2] for @{ $tuple->[1] };
-        }
-        \%cache;
-      };
+    return $TAGCACHE{$class} || MooX::TaggedAttributes::Cache->new( $class )
 }
 
 use namespace::clean -except => qw( import  );
@@ -273,8 +265,10 @@ Combining tag roles is as simple as B<use>'ing them in the new role:
 =head2 Accessing tags
 
 Classes and objects are provided a B<_tags> method which returns a
-hash of hashes keyed off of the tags and attribute names.  For
-example, for the following code:
+L<MooX::TaggedAttributes::Cache> object.  For backwards compatibility,
+it can be dereferenced as a hash, providing a hash of hashes keyed
+off of the tags and attribute names.  For example, for the following
+code:
 
 # EXAMPLE: ./examples/accessing/T.pm
 

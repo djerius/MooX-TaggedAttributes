@@ -2,6 +2,19 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+  [ COMPATIBILITY BREAKAGE ]
+
+   * Perl 5.10.1 is now required.
+
+  [ ENHANCEMENT ]
+
+   * the _tags class method now returns an object of class
+     MooX::TaggedAttributes::Cache, which overloads the %{} operator
+     so that it is backwards compatible.
+
+   * The MooX::TaggedAttributes::Cache class makes it easier to extract
+     information about tags, attributes' tags and attributes' tag values.
+
 0.09      2019-03-18 10:04:27-04:00 America/New_York
 
   [ BUG FIX ]
